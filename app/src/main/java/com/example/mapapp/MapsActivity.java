@@ -7,7 +7,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,7 +22,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.mapapp.databinding.ActivityMapsBinding;
@@ -58,16 +66,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney")
+                .icon(bitmapDescriptorFromVector(getApplicationContext(),R.drawable.ic_baseline_directions_walk_24))
+        );
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 
-        LatLng chillaxSudirman = new LatLng(-6.2113793, 106.8187589);
-        mMap.addMarker(new MarkerOptions().position(chillaxSudirman).title("Marker di Chillax"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(chillaxSudirman, 20));
+        try {
+            boolean success = googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style));
+        } catch (Resources.NotFoundException e) {
+        }
+        mMap = googleMap;
+
+//        LatLng chillaxSudirman = new LatLng(-6.2113793, 106.8187589);
+//        mMap.addMarker(new MarkerOptions().position(chillaxSudirman).title("Marker di Chillax"));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(chillaxSudirman, 20));
 
         setMapOnClick(mMap);
         setPoiClicked(mMap);
         enableMyLocation();
+    }
+
+    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorRestId){
+        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorRestId);
+        vectorDrawable.setBounds(0,0,vectorDrawable.getIntrinsicWidth(),
+                vectorDrawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(),
+                vectorDrawable.getIntrinsicHeight(),Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
     @Override
@@ -105,7 +132,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 map.addMarker(new MarkerOptions()
                         .position(latLng)
                         .snippet(text)
-                        .title("Dropped pin"));
+                        .title("Dropped pin")
+                        .icon(bitmapDescriptorFromVector(getApplicationContext(),R.drawable.ic_baseline_directions_walk_24))
+                );
             }
         });
     }
